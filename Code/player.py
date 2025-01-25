@@ -1,15 +1,17 @@
 import pygame
 from settings import *
 from support import *
+import os
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, group):
         super().__init__(group)
 
         self.import_assets()
+        self.status = 'down_idle'
+        self.frame_index = 0
 
-        self.image = pygame.Surface((32,64))
-        self.image.fill('blue')
+        self.image = self.animations[self.status][self.frame_index]
         self.rect = self.image.get_rect(center = pos)
 
         self.direction = pygame.math.Vector2()
@@ -24,8 +26,10 @@ class Player(pygame.sprite.Sprite):
 						   'right_water':[],'left_water':[],'up_water':[],'down_water':[]}
         
         for animation in self.animations.keys():
-            full_path = '../graphics/character/' + animation
+            # had a problem extracting the directory, so had to use os.getcwd()
+            full_path = os.getcwd() + '/graphics/character/' + animation
             self.animations[animation] = import_folder(full_path)
+        print (self.animations)
 
     def input(self):
         keys = pygame.key.get_pressed()
