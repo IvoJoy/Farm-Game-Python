@@ -1,8 +1,6 @@
 import pygame, sys
 from settings import *
 from level import Level
-from os import walk
-import os
 
 class Game:
     def __init__(self):
