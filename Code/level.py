@@ -2,7 +2,8 @@ import pygame
 from settings import *
 from player import Player
 from overlay import Overlay
-from sprites import Generic, Water, Wildflower, Tree
+from sprites import Generic, Water, Wildflower, Tree, Interaction
+from transition import Transition
 import os
 from pytmx.util_pygame import load_pygame
 from support import *
@@ -17,9 +18,11 @@ class Level:
         self.all_sprites = CameraGroup()
         self.collision_sprites = pygame.sprite.Group()
         self.tree_sprites = pygame.sprite.Group()
+        self.interaction_sprites = pygame.sprite.Group()
     
         self.setup()
         self.overlay = Overlay(self.player)
+        self.transition = Transition(self.reset, self.player)
 
     def setup(self):
         tmx_data = load_pygame(os.getcwd() + '/data/map.tmx')
@@ -61,12 +64,26 @@ class Level:
                     (obj.x, obj.y), 
                     self.all_sprites, 
                     self.collision_sprites,
-                    self.tree_sprites)
-        
+                    self.tree_sprites,
+                    self.interaction_sprites)
+            if obj.name == 'Bed':
+                Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
+
+
+
         Generic(pos = (0,0), surf = pygame.image.load(os.getcwd() + '/graphics/world/ground.png').convert_alpha(), groups = self.all_sprites, z = LAYERS['ground'])
 
     def player_add(self, item):
         self.player.item_inventory[item] += 1    
+
+    def reset(self):
+
+        # apples on trees
+        for tree in self.tree_sprites.sprites():
+            for apple in tree.apple_sprites.sprites():
+                apple.kill()
+            tree.create_fruit()
+
 
     def run(self,dt):
         self.display_surface.fill('black')
@@ -74,6 +91,9 @@ class Level:
         self.all_sprites.update(dt)
 
         self.overlay.display()
+
+        if self.player.sleep:
+            self.transition.play()
 
 
 
