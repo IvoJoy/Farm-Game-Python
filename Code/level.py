@@ -31,13 +31,19 @@ class Level:
 
         # sky
         self.rain = Rain(self.all_sprites)
-        self.raining = randint(0,10) > 3
+        self.raining = randint(0,10) > 7
         self.soil_layer.raining = self.raining
         self.sky = Sky()
         
         # shop
         self.menu = Menu(self.player, self.toggle_shop)
         self.shop_active = False
+
+        self.success = pygame.mixer.Sound(os.getcwd() + '/audio/success.wav')
+        self.success.set_volume(0.2)
+        self.music = pygame.mixer.Sound(os.getcwd() + '/audio/music.mp3')
+        self.music.set_volume(0.2)
+        self.music.play(loops = -1)
 
 
     def setup(self):
@@ -95,7 +101,8 @@ class Level:
         Generic(pos = (0,0), surf = pygame.image.load(os.getcwd() + '/graphics/world/ground.png').convert_alpha(), groups = self.all_sprites, z = LAYERS['ground'])
 
     def player_add(self, item):
-        self.player.item_inventory[item] += 1    
+        self.player.item_inventory[item] += 1
+        self.success.play()
 
     def toggle_shop(self):
         self.shop_active = not self.shop_active
@@ -109,7 +116,7 @@ class Level:
         # soil
         self.soil_layer.remove_water()
 
-        self.raining = randint(0,10) > 3
+        self.raining = randint(0,10) > 7
         self.soil_layer.raining = self.raining
         if self.raining:
             self.soil_layer.water_all()

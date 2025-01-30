@@ -45,10 +45,10 @@ class Player(pygame.sprite.Sprite):
 
         # inventory
         self.item_inventory = {
-            'wood': 0,
-            'apple': 0,
-            'corn': 0,
-            'tomato': 0
+            'wood': 10,
+            'apple': 10,
+            'corn': 10,
+            'tomato': 10
         }
         self.seed_inventory = {
             'corn': 5,
@@ -65,6 +65,10 @@ class Player(pygame.sprite.Sprite):
         self.soil_layer = soil_layer
         self.toggle_shop = toggle_shop
 
+        # sound
+        self.watering = pygame.mixer.Sound(os.getcwd() + '/audio/water.mp3')
+        self.watering.set_volume(0.1)
+
     def use_tool(self):
         if self.selected_tool == 'hoe':
             self.soil_layer.get_hit(self.target_pos)
@@ -74,6 +78,7 @@ class Player(pygame.sprite.Sprite):
                     tree.damage()
         if self.selected_tool == 'water':
             self.soil_layer.water(self.target_pos)
+            self.watering.play()
 
     def get_target_pos(self):
         self.target_pos = self.rect.center + PLAYER_TOOL_OFFSET[self.status.split('_')[0]]
@@ -153,7 +158,6 @@ class Player(pygame.sprite.Sprite):
                 self.selected_seed = self.seeds[self.seed_index]
 
             if keys[pygame.K_RETURN]:
-                self.toggle_shop()
                 collided_interaction_sprite = pygame.sprite.spritecollide(self, self.interaction, False)
                 if collided_interaction_sprite:
                     if collided_interaction_sprite[0].name == 'Trader':
