@@ -5,7 +5,7 @@ from support import *
 from timerr import Timer
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, group, collision_sprites, tree_sprites, interaction, soil_layer):
+    def __init__(self, pos, group, collision_sprites, tree_sprites, interaction, soil_layer, toggle_shop):
         super().__init__(group)
 
         self.import_assets()
@@ -19,7 +19,7 @@ class Player(pygame.sprite.Sprite):
 
         self.direction = pygame.math.Vector2()
         self.pos = pygame.math.Vector2(self.rect.center)
-        self.speed = 200
+        self.speed = 300
 
         # coll
         self.collision_sprites = collision_sprites
@@ -50,7 +50,12 @@ class Player(pygame.sprite.Sprite):
             'corn': 0,
             'tomato': 0
         }
-
+        self.seed_inventory = {
+            'corn': 5,
+            'tomato': 5
+        }
+        self.money = 200
+        
 
 
         # interaction
@@ -58,6 +63,7 @@ class Player(pygame.sprite.Sprite):
         self.interaction = interaction
         self.sleep = False
         self.soil_layer = soil_layer
+        self.toggle_shop = toggle_shop
 
     def use_tool(self):
         if self.selected_tool == 'hoe':
@@ -74,7 +80,9 @@ class Player(pygame.sprite.Sprite):
 
 
     def use_seed(self):
-        self.soil_layer.plant_seed(self.target_pos, self.selected_seed)
+        if self.seed_inventory[self.selected_seed] > 0:
+            self.soil_layer.plant_seed(self.target_pos, self.selected_seed)
+            self.seed_inventory[self.selected_seed] -= 1
 
     def import_assets(self):
         self.animations = {'up': [],'down': [],'left': [],'right': [],
@@ -145,10 +153,11 @@ class Player(pygame.sprite.Sprite):
                 self.selected_seed = self.seeds[self.seed_index]
 
             if keys[pygame.K_RETURN]:
+                self.toggle_shop()
                 collided_interaction_sprite = pygame.sprite.spritecollide(self, self.interaction, False)
                 if collided_interaction_sprite:
-                    if collided_interaction_sprite[0].name == 'Trade':
-                        pass
+                    if collided_interaction_sprite[0].name == 'Trader':
+                        self.toggle_shop()
                     else:
                         self.status = 'left_idle'
                         self.sleep = True
