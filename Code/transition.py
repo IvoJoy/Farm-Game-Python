@@ -1,9 +1,10 @@
+'''the module for the transition day/night'''
 import pygame
-from settings import * 
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT
 
 class Transition:
+    '''transition class'''
     def __init__(self, reset, player):
-        
         # setup
         self.display_surface = pygame.display.get_surface()
         self.reset = reset
@@ -15,6 +16,7 @@ class Transition:
         self.speed = -2
 
     def play(self):
+        '''the transition'''
         self.color += self.speed
         if self.color <= 0:
             self.speed *= -1

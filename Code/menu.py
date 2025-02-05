@@ -1,9 +1,11 @@
-import pygame
-from settings import *
+'''the module for the buy/sell menu'''
 import os
+import pygame
+from settings import PURCHASE_PRICES, SALE_PRICES, SCREEN_HEIGHT, SCREEN_WIDTH
 from timerr import Timer
 
 class Menu:
+    '''menu class'''
     def __init__(self, player, toggle_menu):
         self.player = player
         self.toggle_menu = toggle_menu
@@ -26,6 +28,7 @@ class Menu:
 
 
     def display_money(self):
+        '''displaying the money'''
         text_surf = self.font.render(f'${self.player.money}', False, 'Black')
         text_rect = text_surf.get_rect(midbottom = (SCREEN_WIDTH / 2, SCREEN_HEIGHT - 20))
 
@@ -33,9 +36,9 @@ class Menu:
         self.display_surface.blit(text_surf, text_rect)
 
     def setup(self):
+        '''setting up'''
         self.text_surfs = []
         self.total_height = 0
-        
         for item in self.options:
             text_surf = self.font.render(item, False, 'Black')
             self.text_surfs.append(text_surf)
@@ -43,13 +46,14 @@ class Menu:
 
         self.total_height += (len(self.text_surfs) - 1) * self.space
         self.menu_top = SCREEN_HEIGHT / 2 - self.total_height / 2
-        self.main_rect = pygame.Rect(SCREEN_WIDTH / 2 - self.width / 2, self.menu_top, self.width, self.total_height)
+        self.main_rect = pygame.Rect(SCREEN_WIDTH / 2 - self.width / 2,
+                            self.menu_top, self.width, self.total_height)
 
         # buy/sell
         self.buy_text = self.font.render('Buy', False, 'Black')
         self.sell_text = self.font.render('Sell', False, 'Black')
-        
     def input(self):
+        '''getting input from keyboard'''
         keys = pygame.key.get_pressed()
         self.timer.update()
 
@@ -66,11 +70,9 @@ class Menu:
                 self.timer.activate()
 
             if keys[pygame.K_SPACE]:
-            
                 self.timer.activate()
 
                 current_item = self.options[self.index]
-                
                 if self.index <= self.sell_border:
                     if self.player.item_inventory[current_item] > 0:
                         self.player.item_inventory[current_item] -= 1
@@ -89,35 +91,37 @@ class Menu:
             self.index = 0
 
     def show_entry(self, text_surf, amount, top, selected):
-        
+        '''showing the menu'''
         # background
-        bg_rect = pygame.Rect(self.main_rect.left, top, self.width, text_surf.get_height() + self.padding * 2)
+        bg_rect = pygame.Rect(self.main_rect.left, top, self.width, text_surf.get_height()
+                              + self.padding * 2)
         pygame.draw.rect(self.display_surface, 'White', bg_rect, 0, 3)
-
         # text
         text_rect = text_surf.get_rect(midleft = (self.main_rect.left + 20, bg_rect.centery))
         self.display_surface.blit(text_surf, text_rect)
-
         # amount
         amount_surf = self.font.render(str(amount), False, 'Black')
         amount_rect = amount_surf.get_rect(midright = (self.main_rect.right - 20, bg_rect.centery))
         self.display_surface.blit(amount_surf, amount_rect)
-
         # selected
         if selected:
             pygame.draw.rect(self.display_surface, 'Black', bg_rect, 3, 3)
             if self.index <= self.sell_border: # sell
-                pos_rect = self.sell_text.get_rect(midleft = (self.main_rect.left + 150, bg_rect.centery))
-                self.display_surface.blit(self.sell_text, pos_rect)  
+                pos_rect = self.sell_text.get_rect(midleft = (self.main_rect.left + 150,
+                                                        bg_rect.centery))
+                self.display_surface.blit(self.sell_text, pos_rect)
             else: # buy
-                pos_rect = self.buy_text.get_rect(midleft = (self.main_rect.left + 150, bg_rect.centery))
+                pos_rect = self.buy_text.get_rect(midleft = (self.main_rect.left
+                                                            + 150, bg_rect.centery))
                 self.display_surface.blit(self.buy_text, pos_rect)
 
     def update(self):
+        '''updating'''
         self.input()
         self.display_money()
         for text_index,  text_surf in enumerate(self.text_surfs):
-            top = self.main_rect.top + text_index * (text_surf.get_height() + (self.padding * 2) + self.space)
+            top = self.main_rect.top + text_index * (text_surf.get_height() +
+                                                    (self.padding * 2) + self.space)
             amount_list = list(self.player.item_inventory.values()) + list(self.player.seed_inventory.values())
             amount = amount_list[text_index]
             self.show_entry(text_surf, amount, top, self.index == text_index)

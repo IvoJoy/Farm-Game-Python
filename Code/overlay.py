@@ -1,10 +1,11 @@
-import pygame
-from settings import *
+'''the module for overlay'''
 import os
+import pygame
+from settings import OVERLAY_POSITIONS
 
 class Overlay:
+    '''Overlay class'''
     def __init__(self, player):
-        
         # setup
         self.display_surface = pygame.display.get_surface()
         self.player = player
@@ -15,6 +16,7 @@ class Overlay:
         self.seeds_surf = {seed: pygame.image.load(f'{overlay_path}{seed}.png').convert_alpha() for seed in player.seeds}
 
     def display(self):
+        '''Display overlay'''
         # tools
         tool_surf = self.tools_surf[self.player.selected_tool]
         tool_rect = tool_surf.get_rect(midbottom = OVERLAY_POSITIONS['tool'])

@@ -1,10 +1,12 @@
-import pygame
+'''the module for the player character'''
 import os
-from settings import *
-from support import *
+import pygame
+from settings import LAYERS, PLAYER_TOOL_OFFSET
+from support import import_folder
 from timerr import Timer
 
 class Player(pygame.sprite.Sprite):
+    ''' Player class '''
     def __init__(self, pos, group, collision_sprites, tree_sprites, interaction, soil_layer, toggle_shop):
         super().__init__(group)
 
@@ -55,9 +57,6 @@ class Player(pygame.sprite.Sprite):
             'tomato': 5
         }
         self.money = 200
-        
-
-
         # interaction
         self.tree_sprites = tree_sprites
         self.interaction = interaction
@@ -70,6 +69,7 @@ class Player(pygame.sprite.Sprite):
         self.watering.set_volume(0.1)
 
     def use_tool(self):
+        ''' using the tools '''
         if self.selected_tool == 'hoe':
             self.soil_layer.get_hit(self.target_pos)
         if self.selected_tool == 'axe':
@@ -81,37 +81,39 @@ class Player(pygame.sprite.Sprite):
             self.watering.play()
 
     def get_target_pos(self):
+        ''' getting target postion'''
         self.target_pos = self.rect.center + PLAYER_TOOL_OFFSET[self.status.split('_')[0]]
 
 
     def use_seed(self):
+        ''' using seeds '''
         if self.seed_inventory[self.selected_seed] > 0:
             self.soil_layer.plant_seed(self.target_pos, self.selected_seed)
             self.seed_inventory[self.selected_seed] -= 1
 
     def import_assets(self):
+        '''importing assets'''
         self.animations = {'up': [],'down': [],'left': [],'right': [],
 						   'right_idle':[],'left_idle':[],'up_idle':[],'down_idle':[],
 						   'right_hoe':[],'left_hoe':[],'up_hoe':[],'down_hoe':[],
 						   'right_axe':[],'left_axe':[],'up_axe':[],'down_axe':[],
 						   'right_water':[],'left_water':[],'up_water':[],'down_water':[]}
-        
         for animation in self.animations.keys():
             # had a problem extracting the directory, so had to use os.getcwd()
             full_path = os.getcwd() + '/graphics/character/' + animation
             self.animations[animation] = import_folder(full_path)
-        
     def animate(self, dt):
+        '''animating'''
         self.frame_index += 4 * dt
         if self.frame_index >= len(self.animations[self.status]):
             self.frame_index = 0
         self.image = self.animations[self.status][int(self.frame_index)]
 
     def input(self):
+        '''taking input from the keyboard'''
         keys = pygame.key.get_pressed()
 
         if not self.timers['tool use'].active and not self.sleep:
-            
             if keys[pygame.K_UP]:
                 self.direction.y = -1
                 self.status = 'up'
@@ -120,8 +122,6 @@ class Player(pygame.sprite.Sprite):
                 self.status = 'down'
             else:
                 self.direction.y = 0
-                
-
             if keys[pygame.K_RIGHT]:
                 self.direction.x = 1
                 self.status = 'right'
@@ -167,6 +167,7 @@ class Player(pygame.sprite.Sprite):
                         self.sleep = True
 
     def get_status(self):
+        '''status of character'''
         # idle
         if self.direction.magnitude() == 0:
             self.status = self.status.split('_')[0] + '_idle'
@@ -176,10 +177,12 @@ class Player(pygame.sprite.Sprite):
             self.status = self.status.split('_')[0] + '_' + self.selected_tool
 
     def update_timers(self):
+        '''updating timers'''
         for timer in self.timers.values():
-            timer.update() 
+            timer.update()
 
     def collision(self, direction):
+        '''collision with objects'''
         for sprite in self.collision_sprites.sprites():
             if hasattr(sprite, 'hitbox'):
                 if sprite.hitbox.colliderect(self.hitbox):
@@ -200,17 +203,15 @@ class Player(pygame.sprite.Sprite):
                         self.pos.y = self.hitbox.centery
 
     def move(self, dt):
-        
+        '''moving the character'''
         # normalizing vector
         if self.direction.magnitude() > 0:
             self.direction = self.direction.normalize()
-        
         #horizontal
         self.pos.x += self.direction.x * self.speed * dt
         self.hitbox.centerx = round(self.pos.x)
         self.rect.centerx = self.hitbox.centerx
         self.collision('horizontal')
-        
         #vertical
         self.pos.y += self.direction.y * self.speed * dt
         self.hitbox.centery = round(self.pos.y)
@@ -218,6 +219,7 @@ class Player(pygame.sprite.Sprite):
         self.collision('vertical')
 
     def update(self, dt):
+        '''updating'''
         self.input()
         self.get_status()
         self.update_timers()
