@@ -1,34 +1,37 @@
 '''the module for the player character'''
 import os
 import pygame
-from settings import LAYERS, PLAYER_TOOL_OFFSET
-from support import import_folder
-from timerr import Timer
+from src.settings import LAYERS, PLAYER_TOOL_OFFSET
+from src.support import import_folder
+from src.timerr import Timer
+from typing import Dict, List, Callable
+from src.soil import SoilLayer
 
 class Player(pygame.sprite.Sprite):
     ''' Player class '''
-    def __init__(self, pos, group, collision_sprites, tree_sprites, interaction, soil_layer, toggle_shop):
+    def __init__(self, pos: tuple[int, int], group: pygame.sprite.Group, collision_sprites: pygame.sprite.Group, 
+                 tree_sprites: pygame.sprite.Group, interaction: pygame.sprite.Group, soil_layer: SoilLayer, 
+                 toggle_shop: Callable[[], None]) -> None:
         super().__init__(group)
 
         self.import_assets()
-        self.status = 'down_idle'
-        self.frame_index = 0
+        self.status: str = 'down_idle'
+        self.frame_index: float = 0
 
-        self.image = self.animations[self.status][self.frame_index]
-        self.rect = self.image.get_rect(center = pos)
-        self.z = LAYERS['main']
+        self.image: pygame.Surface = self.animations[self.status][self.frame_index]
+        self.rect: pygame.Rect = self.image.get_rect(center=pos)
+        self.z: int = LAYERS['main']
 
-
-        self.direction = pygame.math.Vector2()
-        self.pos = pygame.math.Vector2(self.rect.center)
-        self.speed = 300
+        self.direction: pygame.math.Vector2 = pygame.math.Vector2()
+        self.pos: pygame.math.Vector2 = pygame.math.Vector2(self.rect.center)
+        self.speed: int = 300
 
         # coll
-        self.collision_sprites = collision_sprites
-        self.hitbox = self.rect.copy().inflate((-126, -70))
+        self.collision_sprites: pygame.sprite.Group = collision_sprites
+        self.hitbox: pygame.Rect = self.rect.copy().inflate((-126, -70))
 
         # timers
-        self.timers = {
+        self.timers: Dict[str, Timer] = {
             'tool use': Timer(350, self.use_tool),
             'tool switch': Timer(200),
             'seed use': Timer(350, self.use_seed),
@@ -36,40 +39,43 @@ class Player(pygame.sprite.Sprite):
         }
 
         # tools
-        self.tools = ['hoe', 'axe', 'water']
-        self.tool_index = 0
-        self.selected_tool = self.tools[self.tool_index]
+        self.tools: List[str] = ['hoe', 'axe', 'water']
+        self.tool_index: int = 0
+        self.selected_tool: str = self.tools[self.tool_index]
 
         # seeds
-        self.seeds = ['corn', 'tomato']
-        self.seed_index = 0
-        self.selected_seed = self.seeds[self.seed_index]
+        self.seeds: List[str] = ['corn', 'tomato']
+        self.seed_index: int = 0
+        self.selected_seed: str = self.seeds[self.seed_index]
 
         # inventory
-        self.item_inventory = {
+        self.item_inventory: Dict[str, int] = {
             'wood': 10,
             'apple': 10,
             'corn': 10,
             'tomato': 10
         }
-        self.seed_inventory = {
+        self.seed_inventory: Dict[str, int] = {
             'corn': 5,
             'tomato': 5
         }
-        self.money = 200
+        self.money: int = 200
+
         # interaction
-        self.tree_sprites = tree_sprites
-        self.interaction = interaction
-        self.sleep = False
-        self.soil_layer = soil_layer
-        self.toggle_shop = toggle_shop
+        self.tree_sprites: pygame.sprite.Group = tree_sprites
+        self.interaction: pygame.sprite.Group = interaction
+        self.sleep: bool = False
+        self.soil_layer: SoilLayer = soil_layer
+        self.toggle_shop: Callable[[], None] = toggle_shop
 
         # sound
-        self.watering = pygame.mixer.Sound(os.getcwd() + '/audio/water.mp3')
+        self.watering: pygame.mixer.Sound = pygame.mixer.Sound(os.getcwd() + '/audio/water.mp3')
         self.watering.set_volume(0.1)
 
-    def use_tool(self):
+
+    def use_tool(self) -> None:
         ''' using the tools '''
+        self.get_target_pos()
         if self.selected_tool == 'hoe':
             self.soil_layer.get_hit(self.target_pos)
         if self.selected_tool == 'axe':
@@ -80,36 +86,37 @@ class Player(pygame.sprite.Sprite):
             self.soil_layer.water(self.target_pos)
             self.watering.play()
 
-    def get_target_pos(self):
-        ''' getting target postion'''
-        self.target_pos = self.rect.center + PLAYER_TOOL_OFFSET[self.status.split('_')[0]]
+    def get_target_pos(self) -> None:
+        ''' getting target position'''
+        self.target_pos: pygame.math.Vector2 = self.rect.center + PLAYER_TOOL_OFFSET[self.status.split('_')[0]]
 
 
-    def use_seed(self):
+    def use_seed(self) -> None:
         ''' using seeds '''
         if self.seed_inventory[self.selected_seed] > 0:
             self.soil_layer.plant_seed(self.target_pos, self.selected_seed)
             self.seed_inventory[self.selected_seed] -= 1
 
-    def import_assets(self):
+    def import_assets(self) -> None:
         '''importing assets'''
-        self.animations = {'up': [],'down': [],'left': [],'right': [],
-						   'right_idle':[],'left_idle':[],'up_idle':[],'down_idle':[],
-						   'right_hoe':[],'left_hoe':[],'up_hoe':[],'down_hoe':[],
-						   'right_axe':[],'left_axe':[],'up_axe':[],'down_axe':[],
-						   'right_water':[],'left_water':[],'up_water':[],'down_water':[]}
+        self.animations: Dict[str, List[pygame.Surface]] = {'up': [], 'down': [], 'left': [], 'right': [],
+                                                            'right_idle': [], 'left_idle': [], 'up_idle': [], 'down_idle': [],
+                                                            'right_hoe': [], 'left_hoe': [], 'up_hoe': [], 'down_hoe': [],
+                                                            'right_axe': [], 'left_axe': [], 'up_axe': [], 'down_axe': [],
+                                                            'right_water': [], 'left_water': [], 'up_water': [], 'down_water': []}
         for animation in self.animations.keys():
             # had a problem extracting the directory, so had to use os.getcwd()
-            full_path = os.getcwd() + '/graphics/character/' + animation
+            full_path: str = os.getcwd() + '/graphics/character/' + animation
             self.animations[animation] = import_folder(full_path)
-    def animate(self, dt):
+            
+    def animate(self, dt: float) -> None:
         '''animating'''
         self.frame_index += 4 * dt
         if self.frame_index >= len(self.animations[self.status]):
             self.frame_index = 0
         self.image = self.animations[self.status][int(self.frame_index)]
 
-    def input(self):
+    def input(self) -> None:
         '''taking input from the keyboard'''
         keys = pygame.key.get_pressed()
 
@@ -166,7 +173,7 @@ class Player(pygame.sprite.Sprite):
                         self.status = 'left_idle'
                         self.sleep = True
 
-    def get_status(self):
+    def get_status(self) -> None:
         '''status of character'''
         # idle
         if self.direction.magnitude() == 0:
@@ -176,12 +183,12 @@ class Player(pygame.sprite.Sprite):
         if self.timers['tool use'].active:
             self.status = self.status.split('_')[0] + '_' + self.selected_tool
 
-    def update_timers(self):
+    def update_timers(self) -> None:
         '''updating timers'''
         for timer in self.timers.values():
             timer.update()
 
-    def collision(self, direction):
+    def collision(self, direction: str) -> None:
         '''collision with objects'''
         for sprite in self.collision_sprites.sprites():
             if hasattr(sprite, 'hitbox'):
@@ -202,7 +209,7 @@ class Player(pygame.sprite.Sprite):
                         self.rect.centery = self.hitbox.centery
                         self.pos.y = self.hitbox.centery
 
-    def move(self, dt):
+    def move(self, dt: float) -> None:
         '''moving the character'''
         # normalizing vector
         if self.direction.magnitude() > 0:
@@ -218,7 +225,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.centery = self.hitbox.centery
         self.collision('vertical')
 
-    def update(self, dt):
+    def update(self, dt: float) -> None:
         '''updating'''
         self.input()
         self.get_status()
