@@ -9,7 +9,7 @@ class Game:
     def __init__(self) -> None:
         pygame.init()
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption('Farm')
+        pygame.display.set_caption('Farm Game')
         self.clock = pygame.time.Clock()
         self.level = Level()
 
